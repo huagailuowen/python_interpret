@@ -7,6 +7,8 @@
 #include <string>
 #include <utility>
 #include"Scope.h"
+
+
  std::any EvalVisitor::visitFile_input(Python3Parser::File_inputContext *ctx)  {
     for(int i=0;ctx->stmt(i)||ctx->NEWLINE(i);i++){
       if(ctx->stmt(i))
@@ -18,22 +20,27 @@
    std::any EvalVisitor::visitFuncdef(Python3Parser::FuncdefContext *ctx)  {
     std::string name= ctx->NAME()->getText();
     function f;
-    f.point=ctx;
-    // ctx->parameters()
-    for(int i=0;ctx->parameters()->typedargslist()->tfpdef(i);i++){
-      auto v=ctx->parameters()->typedargslist();
-      auto name=std::any_cast<std::string>(v->tfpdef(i)->getText());
-      std::any val={};
-      if(v->test(i)){
-        val=visitTest(v->test(i));
+    f.point=(Python3Parser::FuncdefContext *)ctx;
+    
+    
+    if(ctx->parameters()->typedargslist()){
+      for(int i=0;ctx->parameters()->typedargslist()->tfpdef(i);i++){
+        auto v=ctx->parameters()->typedargslist();
+        auto name=std::any_cast<std::string>(v->tfpdef(i)->getText());
+        std::any val={};
+        if(v->test(i)){
+          val=visitTest(v->test(i));
+          // std::cout<<'|';print(val);std::cout<<'|';
+        }
+        f.varylist.push_back(std::make_pair(name, val));
       }
-      f.varylist.push_back(std::make_pair(name, val));
     }
-    Scope::find(name)->second=f;
+    Scope::find((std::string)name)->second=f;
     return {};
   }
 
    std::any EvalVisitor::visitParameters(Python3Parser::ParametersContext *ctx)  {
+    
     return {};
   }
 
@@ -48,8 +55,13 @@
    std::any EvalVisitor::visitStmt(Python3Parser::StmtContext *ctx)  {
     if(ctx->simple_stmt())
       return visitSimple_stmt(ctx->simple_stmt());
-    else
-      return visitCompound_stmt(ctx->compound_stmt());
+    else if(ctx->compound_stmt()){
+      std::any a=visitCompound_stmt(ctx->compound_stmt());
+      // exit(0);
+      return a;
+  
+    }
+    return {};
   }
 
    std::any EvalVisitor::visitSimple_stmt(Python3Parser::Simple_stmtContext *ctx)  {
@@ -57,30 +69,38 @@
   }
 
    std::any EvalVisitor::visitSmall_stmt(Python3Parser::Small_stmtContext *ctx)  {
-    return visitChildren(ctx);
+    if(ctx->expr_stmt())return visitExpr_stmt(ctx->expr_stmt());
+    else return visitFlow_stmt(ctx->flow_stmt());
   }
    std::any EvalVisitor::visitAugassign(Python3Parser::AugassignContext *ctx)  {
     if(ctx->ADD_ASSIGN()){
-      return ADD;
+      return (int)ADD;
     }else if(ctx->SUB_ASSIGN()){
-      return SUB;
+      return (int)SUB;
     }else if(ctx->MULT_ASSIGN()){
-      return MUL;
+      return (int)MUL;
     }else if(ctx->DIV_ASSIGN()){
-      return DIV;
+      return (int)DIVdouble;
     }else if(ctx->IDIV_ASSIGN()){
-      return DIVdouble;
+      return (int)DIV;
     }else if(ctx->MOD_ASSIGN()){
-      return MOD;
-    }else return NO;
+      return (int)MOD;
+    }else return (int)NO;
   }
 
    std::any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx)  {
     // if(!ctx->augassign())return visitTestlist(ctx->testlist(0));
-    if(!ctx->ASSIGN(0))return visitTestlist(ctx->testlist(0));
+    if(!ctx->ASSIGN(0)&&!ctx->augassign())return visitTestlist(ctx->testlist(0));
     std::any result=visitTestlist(ctx->testlist().back());
+    // std::cout<<"\n|";MYprint(result);std::cout<<"|\n";
     std::vector<std::any>val=std::any_cast<std::vector<std::any>>(result);
-    int p=std::any_cast<int>(visitAugassign(ctx->augassign()));
+    // std::cout<<val.size();
+    for(int j=0;j<val.size();j++)
+      val[j]=Getvalue(val[j]);
+    std::any Assign=(int)EQAL;
+    if(ctx->augassign())Assign=visitAugassign(ctx->augassign());
+    int *pp=std::any_cast<int>(&Assign);
+    int p=*pp;
     if(p!=EQAL){
       result=visitTestlist(ctx->testlist().front());
       std::vector<std::any>varylist=std::any_cast<std::vector<std::any>>(result);
@@ -109,6 +129,7 @@
     for(int i=0;ctx->testlist(i+1);i++){
       result=visitTestlist(ctx->testlist(i));
       std::vector<std::any>varylist=std::any_cast<std::vector<std::any>>(result);
+      // std::cout<<varylist.size()<<' '<<val.size()<<'\n';
       for(int j=0;j<varylist.size()&&j<val.size();j++){
         Changevalue(varylist[j], Getvalue(val[j]));
       }
@@ -127,7 +148,9 @@
       auto re=pot->testlist();
       if(re==nullptr)
         return Flowcontrol(Flowcontrol::controltype::return_,{});
-      std::any ans=visitTestlist(re);
+      auto ans=std::any_cast<std::vector<std::any>>(visitTestlist(re));
+
+      return Flowcontrol(Flowcontrol::controltype::return_,Getvalue(ans));
     }
     return {};
   }
@@ -155,26 +178,31 @@
    std::any EvalVisitor::visitCompound_stmt(Python3Parser::Compound_stmtContext *ctx)  {
     if(ctx->if_stmt())
       return visitIf_stmt(ctx->if_stmt());
-    else if(ctx->while_stmt())
-      return visitWhile_stmt(ctx->while_stmt());
+    else if(ctx->while_stmt()){
+      std::any re=visitWhile_stmt(ctx->while_stmt());
+      
+      return re;
+    }
     else if(ctx->funcdef())
       return visitFuncdef(ctx->funcdef());
     return {};
   }
    std::any EvalVisitor::visitIf_stmt(Python3Parser::If_stmtContext *ctx)  {
+    
     for(int i=0;ctx->suite(i);i++){
       if(!ctx->test(i)){
         std::any result=visitSuite(ctx->suite(i));
         auto u=std::any_cast<Flowcontrol>(&result);
         if(u)
-          return u;
+          return result;
         break;
       }
       if(Getbool(Getvalue(visitTest(ctx->test(i))))){
         std::any result=visitSuite(ctx->suite(i));
         auto u=std::any_cast<Flowcontrol>(&result);
-        if(u)
-          return u;
+        if(u){
+          return result;
+        }
         break;
       }
     }
@@ -182,14 +210,19 @@
   }
 
    std::any EvalVisitor::visitWhile_stmt(Python3Parser::While_stmtContext *ctx)  {
-    while(ctx->test()){
+    while(Getbool(visitTest(ctx->test()))){
       std::any result=visitSuite(ctx->suite());
+
       auto u=std::any_cast<Flowcontrol>(&result);
       if(u){
-        if(u->controtype==Flowcontrol::controltype::break_)
+        
+        if(u->controtype==Flowcontrol::controltype::break_){
+          // std::cout<<"{}";
+
           return {};
+        }
         if(u->controtype==Flowcontrol::controltype::return_)
-          return u;
+          return result;
       }
     }
     return {};
@@ -205,23 +238,32 @@
     for (int i = 0; ctx->stmt(i); ++i) {
       std::any result = visitStmt(ctx->stmt(i));
       auto u=std::any_cast<Flowcontrol>(&result);
-      if (u) 
-        return result;
+      if (u) {
+        // std::cout<<i<<':';
+        // print(u->result);
+        return *u;
+      }
     }
     return {};
   }
 
    std::any EvalVisitor::visitTest(Python3Parser::TestContext *ctx)  {
-    return visitOr_test(ctx->or_test());
+    std::any t=visitOr_test(ctx->or_test());
+    
+    return t;
   }
 
    std::any EvalVisitor::visitOr_test(Python3Parser::Or_testContext *ctx)  {
     std::any result=visitAnd_test(ctx->and_test(0));
     if(!ctx->OR(0))return result;
+    // std::cout<<"@@";
     result=Getbool(result);
+    if(Getbool(result))
+      return true;
     for(int i=0;ctx->OR(i);i++){
       std::any res=visitAnd_test(ctx->and_test(i+1));
-      result=(Getbool(result)|Getbool(res));
+      // std::cout<<Getbool(result)<<' '<<Getbool(res)<<'\n';
+      result=(Getbool(result)||Getbool(res));
       if(Getbool(result))
         return true;
     }
@@ -230,11 +272,12 @@
 
    std::any EvalVisitor::visitAnd_test(Python3Parser::And_testContext *ctx)  {
     std::any result=visitNot_test(ctx->not_test(0));
+    // if(std::any_cast<variety>(&result))std::cout<<"97897";
     if(!ctx->AND(0))return result;
     result=Getbool(result);
     for(int i=0;ctx->AND(i);i++){
-      std::any res=visitNot_test(ctx->not_test(0));
-      result=(Getbool(result)&Getbool(res));
+      std::any res=visitNot_test(ctx->not_test(i+1));
+      result=(Getbool(result)&&Getbool(res));
       if(!Getbool(result))
         return false;
     }
@@ -251,9 +294,11 @@
    std::any EvalVisitor::visitComparison(Python3Parser::ComparisonContext *ctx)  {
     std::any result=visitArith_expr(ctx->arith_expr(0));
     if(!ctx->comp_op(0))return result;
+    result=Getvalue(result);
     bool st=true;
     for(int i=0;ctx->comp_op(i);i++){
       std::any res=visitArith_expr(ctx->arith_expr(i+1));
+      res=Getvalue(res);
       if(ctx->comp_op(i)->EQUALS())
         st&=(result==res);
       if(ctx->comp_op(i)->LESS_THAN())
@@ -264,13 +309,16 @@
         st&=(result<=res);
       if(ctx->comp_op(i)->GT_EQ())
         st&=(result>=res);
-      if(ctx->comp_op(i)->NOT_EQ_2())
+      if(ctx->comp_op(i)->NOT_EQ_2()){
+        // print(result);
+        // print(res);
         st&=(result!=res);
+      }
       if(!st)
         return st; 
       result=res;
-      //指针？？？？？？
     }
+    
     return st;
   }
 
@@ -281,8 +329,12 @@
 
    std::any EvalVisitor::visitArith_expr(Python3Parser::Arith_exprContext *ctx)  {
     std::any result=visitTerm(ctx->term(0));
+    if(!ctx->addorsub_op(0))return result;
+    result=Getvalue(result);
+    // print(result);
     for(int i=0;ctx->addorsub_op(i);i++){
-      std::any res=visitTerm(ctx->term(i+1));
+      std::any res=Getvalue(visitTerm(ctx->term(i+1)));
+      // print(res);
       if(ctx->addorsub_op(i)->ADD())
         result+=res;
       if(ctx->addorsub_op(i)->MINUS())
@@ -297,8 +349,10 @@
 
    std::any EvalVisitor::visitTerm(Python3Parser::TermContext *ctx)  {
     std::any result=visitFactor(ctx->factor(0));
+    if(!ctx->muldivmod_op(0))return result;
+    result=Getvalue(result);
     for(int i=0;ctx->muldivmod_op(i);i++){
-      std::any res=visitFactor(ctx->factor(i+1));
+      std::any res=Getvalue(visitFactor(ctx->factor(i+1)));
       if(ctx->muldivmod_op(i)->STAR())
         result*=res;
       if(ctx->muldivmod_op(i)->DIV())
@@ -316,13 +370,15 @@
   }
 
    std::any EvalVisitor::visitFactor(Python3Parser::FactorContext *ctx)  {
+    
     if(ctx->atom_expr()){
-      return visitAtom_expr(ctx->atom_expr());
+      std::any t=visitAtom_expr(ctx->atom_expr());
+      return t;
     }
     if(ctx->MINUS()){
       return addminussignal(Getvalue(visitFactor(ctx->factor())));
     }else{
-      return Getvalue(visitFactor(ctx->factor()));
+      return visitFactor(ctx->factor());
     }
   }
 
@@ -338,6 +394,7 @@
       // if(std::any_cast<>(&V[0]))
       // print((*f).point);
       // return {};
+      
       return usefunction(*f,ctx->trailer()->arglist());
     }else{
     //   std::cout<<')';
@@ -361,8 +418,14 @@
       return visitTest(ctx->test());
     }
       
-    else if (ctx->NUMBER())
+    else if (ctx->NUMBER()){
+      for(auto s:ctx->getText())
+      {
+        if(s=='.')
+          return Getdouble(ctx->getText());
+      }
       return Getint(ctx->getText());
+    }
     else if (!ctx->STRING().empty()){
       std::string tmp=""; 
       for(auto s:ctx->STRING()){
@@ -378,7 +441,9 @@
       // if(!td::any_cast<>(&a))std::cout<<"98493574";
       // auto u=std::any_cast<function>(&a);
       // if(u)std::cout<<3248947;
-      variety a=*Scope::find(ctx->getText());
+      // std::cout<<ctx->getText()<<'\n';
+      variety a=*Scope::find((std::string)ctx->getText());
+      // /*if(std::any_cast<variety>(&t))*/std::cout<<"97897";
       return a;
     }
     return {};
@@ -388,8 +453,10 @@
     std::vector<std::any>::iterator it;
     for(int i=0;ctx->test(i);i++){
       std::any tmp=visitTest(ctx->test(i));
+      
       auto p=std::any_cast<std::vector<std::any>>(&tmp);
       if(p){
+        
         std::vector<std::any> v=*p;
         for(it=v.begin();it!=v.end();it++){
           list.push_back(*it);
@@ -402,13 +469,23 @@
   }
 
    std::any EvalVisitor::visitArglist(Python3Parser::ArglistContext *ctx)  {
-    // std::cout<<"743987348975";
+    
+    // std::cout<<"*";
     // exit(0);
     // return {};
     std::vector<std::any>list;
+    if(!ctx)return list;
     for(int i=0;ctx->argument(i);i++){
-      list.push_back(visitArgument(ctx->argument(i)));
+      std::any t=visitArgument(ctx->argument(i));
+      if(std::any_cast<std::pair<std::string,std::any>>(&t)){
+        if(std::any_cast<std::pair<std::string,std::any>>(t).first=="!")
+          t=std::any_cast<std::pair<std::string,std::any>>(t).second;
+      }
+      list.push_back(t);
     }
+    // auto p=std::any_cast<variety>(&list[0]);
+    // if(p)std::cout<<"3u4984";
+    // std::cout<<list.size();
     return list;
   }
 
@@ -417,6 +494,14 @@
       std::any result=visitTest(ctx->test(1));
       return std::make_pair(ctx->test(0)->getText(),Getvalue(result));
     }else{
-      return Getvalue(visitTest(ctx->test(0)));
+      //bug!
+      //getvalue 出一个variety
+      std::any t=visitTest(ctx->test(0));
+      if(std::any_cast<variety>(&t))
+        t=std::make_pair((std::string)"!", t);
+      // std::cout<<"}}";
+      // if(std::any_cast<variety>(&t))std::cout<<std::any_cast<variety>(t).first<<' ';
+
+      return t;
     }
   }

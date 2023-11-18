@@ -4,7 +4,7 @@ int getint(int2048 t)
 {
   int n=0;
   for(int i=t.num.size()-1;i>=0;i--){
-    n=n*10+t.num[i];
+    n=n*Digital+t.num[i];
   }
   n*=t.f;
   return n;
