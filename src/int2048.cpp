@@ -348,11 +348,11 @@ int2048 &int2048::operator*=(int2048 b) {
     return *this;
   }
   // if(b.)
-  f *= b.f;
   if(b.num.size()+num.size()<=4){
-    (*this)=getlong(*this)*getlong(b)*f;
+    (*this)=int2048(getlong(*this)*getlong(b));
     return *this;
   }
+  f *= b.f;
   std::vector<long long> tmpnuma, tmpnumb;
   for (int i = 0; i < num.size(); i++)
     tmpnuma.push_back(num[i]);
