@@ -1,6 +1,6 @@
 #include "int2048.h"
 namespace sjtu {
-int getint(int2048 t)
+int getint(const int2048 &t)
 {
   int n=0;
   for(int i=t.num.size()-1;i>=0;i--){
@@ -9,7 +9,15 @@ int getint(int2048 t)
   n*=t.f;
   return n;
 }
-
+long long getlong(const int2048 &t)
+{
+  long long n=0;
+  for(int i=t.num.size()-1;i>=0;i--){
+    n=n*Digital+t.num[i];
+  }
+  n*=t.f;
+  return n;
+}
 void _add(std::vector<int> &a, std::vector<int> &b) {
   a.resize(std::max(a.size(), b.size()) + 1);
   for (int i = 0; i < a.size() - 1; i++) {
@@ -339,9 +347,12 @@ int2048 &int2048::operator*=(int2048 b) {
     *this = int2048(0);
     return *this;
   }
-  // if(b.num.size()>num.size())
   // if(b.)
   f *= b.f;
+  if(b.num.size()+num.size()<=4){
+    (*this)=getlong(*this)*getlong(b)*f;
+    return *this;
+  }
   std::vector<long long> tmpnuma, tmpnumb;
   for (int i = 0; i < num.size(); i++)
     tmpnuma.push_back(num[i]);

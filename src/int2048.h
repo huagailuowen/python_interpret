@@ -41,7 +41,8 @@ public:
   void read(const std::string &);
   // 输出储存的大整数，无需换行
   void print() const;
-  int getint() const;
+  
+  
   // 加上一个大整数
   int2048 &add(int2048);
   // 返回两个大整数之和
@@ -88,8 +89,8 @@ public:
   friend bool operator<=(const int2048 &, const int2048 &);
   friend bool operator>=(const int2048 &, const int2048 &);
 };
-int getint(int2048 t);
-
+int getint(const int2048 &);
+long long getlong(const int2048 &);
 } // namespace sjtu
 
 
