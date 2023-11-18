@@ -339,7 +339,8 @@ int2048 &int2048::operator*=(int2048 b) {
     *this = int2048(0);
     return *this;
   }
-
+  // if(b.num.size()>num.size())
+  // if(b.)
   f *= b.f;
   std::vector<long long> tmpnuma, tmpnumb;
   for (int i = 0; i < num.size(); i++)
@@ -448,6 +449,36 @@ std::vector<long long> GetInv(std::vector<long long> a, int T, int TT) {
 }
 int2048 &int2048::operator/=(int2048 b) {
   // exit(-1);
+  if(b.num.size()<=3){
+// []unorderedmap
+    long long B=0,C=0;
+    for(int i=(int)b.num.size()-1;i>=0;i--){
+      B=B*Digital+b.num[i];
+    }
+    for(int i=(int)num.size()-1;i>=0;i--){
+      C=C*Digital+num[i];
+      num[i]=C/B;
+      C%=B;
+    }
+    f*=b.f;
+    if(f==-1&&C!=0){
+      num[0]+=1;
+      int d=0;
+      while(num[d]>=Digital){
+        num[d]-=Digital;
+        num[d+1]+=1;
+        d++;
+      }
+      
+    }
+    while (num.size() > 1 && num[num.size() - 1] == 0){
+      num.pop_back();
+    }
+    if (num[num.size() - 1] == 0)
+      f = 0;
+    return *this;
+    //
+  }
   int F = f * b.f;
   // return (*this);
   f = b.f = 1;
