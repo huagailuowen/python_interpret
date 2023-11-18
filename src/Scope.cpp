@@ -49,6 +49,7 @@ std::any MYprint(std::any list)
             print(Getvalue(u));
         }
         else print(u);
+        std::cout<<' ';
     }
     std::cout<<'\n';
     return {};

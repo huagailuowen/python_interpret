@@ -130,6 +130,7 @@ std::string Getstring(std::any object) {
   } else if ((pstring = std::any_cast<std::string>(&object)) != nullptr) {
     return *pstring;
   } else if ((pdouble = std::any_cast<double>(&object)) != nullptr) {
+    
     return std::to_string(*pdouble);
   } else if(!object.has_value()){
     return "None";
