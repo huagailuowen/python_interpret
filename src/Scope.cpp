@@ -8,7 +8,7 @@ using namespace Scope;
 namespace Scope {
 std::vector<std::map<std::string ,std::any>>varietymap
     {{{"int",function(0)},{"str",function(1)},
-    {"double",function(2)},{"bool",function(3)},{"print",function(4)}}};
+    {"float",function(2)},{"bool",function(3)},{"print",function(4)}}};
 
 
 std::map<std::string ,std::any>::iterator find(std::any object)
