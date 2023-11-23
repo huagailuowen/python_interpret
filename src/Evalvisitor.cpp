@@ -10,9 +10,13 @@
 
 
  std::any EvalVisitor::visitFile_input(Python3Parser::File_inputContext *ctx)  {
-    for(int i=0;ctx->stmt(i)||ctx->NEWLINE(i);i++){
-      if(ctx->stmt(i))
-        visitStmt(ctx->stmt(i));
+    
+    auto stmtlist=ctx->stmt();
+    auto linelist=ctx->stmt();
+    
+    for(int i=0;(i<stmtlist.size()&&stmtlist[i])||(i<linelist.size()&&linelist[i]);i++){
+      if((i<stmtlist.size()&&stmtlist[i]))
+        visitStmt(stmtlist[i]);
     }
     return {};
   }
@@ -24,12 +28,14 @@
     
     
     if(ctx->parameters()->typedargslist()){
-      for(int i=0;ctx->parameters()->typedargslist()->tfpdef(i);i++){
+      auto tfplist=ctx->parameters()->typedargslist()->tfpdef();
+      for(int i=0;i!=tfplist.size();i++){
         auto v=ctx->parameters()->typedargslist();
-        auto name=std::any_cast<std::string>(v->tfpdef(i)->getText());
+        auto name=std::any_cast<std::string>(tfplist[i]->getText());
         std::any val={};
-        if(v->test(i)){
-          val=visitTest(v->test(i));
+        auto testlist=v->test();
+        if(i<testlist.size()){
+          val=visitTest(testlist[i]);
           // std::cout<<'|';print(val);std::cout<<'|';
         }
         f.varylist.push_back(std::make_pair(name, val));
@@ -91,7 +97,8 @@
    std::any EvalVisitor::visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx)  {
     // if(!ctx->augassign())return visitTestlist(ctx->testlist(0));
     if(!ctx->ASSIGN(0)&&!ctx->augassign())return visitTestlist(ctx->testlist(0));
-    std::any result=visitTestlist(ctx->testlist().back());
+    auto testlist=ctx->testlist();
+    std::any result=visitTestlist(testlist.back());
     // std::cout<<"\n|";MYprint(result);std::cout<<"|\n";
     std::vector<std::any>val=std::any_cast<std::vector<std::any>>(result);
     // std::cout<<val.size();
@@ -102,7 +109,7 @@
     int *pp=std::any_cast<int>(&Assign);
     int p=*pp;
     if(p!=EQAL){
-      result=visitTestlist(ctx->testlist().front());
+      result=visitTestlist(testlist.front());
       std::vector<std::any>varylist=std::any_cast<std::vector<std::any>>(result);
       for(int j=0;j<varylist.size()&&j<val.size();j++){
         if(p==ADD){
@@ -126,8 +133,8 @@
       }
       return {};
     }
-    for(int i=0;ctx->testlist(i+1);i++){
-      result=visitTestlist(ctx->testlist(i));
+    for(int i=0;i+1<testlist.size();i++){
+      result=visitTestlist(testlist[i]);
       std::vector<std::any>varylist=std::any_cast<std::vector<std::any>>(result);
       // std::cout<<varylist.size()<<' '<<val.size()<<'\n';
       for(int j=0;j<varylist.size()&&j<val.size();j++){
@@ -188,17 +195,19 @@
     return {};
   }
    std::any EvalVisitor::visitIf_stmt(Python3Parser::If_stmtContext *ctx)  {
+    auto suitelist=ctx->suite();
+    auto testlist=ctx->test();
     
-    for(int i=0;ctx->suite(i);i++){
-      if(!ctx->test(i)){
-        std::any result=visitSuite(ctx->suite(i));
+    for(int i=0;i!=suitelist.size();i++){
+      if(i>=testlist.size()){
+        std::any result=visitSuite(suitelist[i]);
         auto u=std::any_cast<Flowcontrol>(&result);
         if(u)
           return result;
         break;
       }
-      if(Getbool(Getvalue(visitTest(ctx->test(i))))){
-        std::any result=visitSuite(ctx->suite(i));
+      if(Getbool(Getvalue(visitTest(testlist[i])))){
+        std::any result=visitSuite(suitelist[i]);
         auto u=std::any_cast<Flowcontrol>(&result);
         if(u){
           return result;
@@ -235,8 +244,9 @@
       if (u) 
         return result;
     }
-    for (int i = 0; ctx->stmt(i); ++i) {
-      std::any result = visitStmt(ctx->stmt(i));
+    auto stmtlist=ctx->stmt();
+    for (int i = 0; i!=stmtlist.size(); ++i) {
+      std::any result = visitStmt(stmtlist[i]);
       auto u=std::any_cast<Flowcontrol>(&result);
       if (u) {
         // std::cout<<i<<':';
@@ -255,13 +265,15 @@
 
    std::any EvalVisitor::visitOr_test(Python3Parser::Or_testContext *ctx)  {
     std::any result=visitAnd_test(ctx->and_test(0));
-    if(!ctx->OR(0))return result;
+    auto testlist=ctx->and_test();
+    auto oplist=ctx->OR();
+    if(!oplist.size())return result;
     // std::cout<<"@@";
     result=Getbool(result);
     if(Getbool(result))
       return true;
-    for(int i=0;ctx->OR(i);i++){
-      std::any res=visitAnd_test(ctx->and_test(i+1));
+    for(int i=0;i!=oplist.size();i++){
+      std::any res=visitAnd_test(testlist[i+1]);
       // std::cout<<Getbool(result)<<' '<<Getbool(res)<<'\n';
       result=(Getbool(result)||Getbool(res));
       if(Getbool(result))
@@ -273,10 +285,12 @@
    std::any EvalVisitor::visitAnd_test(Python3Parser::And_testContext *ctx)  {
     std::any result=visitNot_test(ctx->not_test(0));
     // if(std::any_cast<variety>(&result))std::cout<<"97897";
-    if(!ctx->AND(0))return result;
+    auto testlist=ctx->not_test();
+    auto oplist=ctx->AND();
+    if(!oplist.size())return result;
     result=Getbool(result);
-    for(int i=0;ctx->AND(i);i++){
-      std::any res=visitNot_test(ctx->not_test(i+1));
+    for(int i=0;i!=oplist.size();i++){
+      std::any res=visitNot_test(testlist[i+1]);
       result=(Getbool(result)&&Getbool(res));
       if(!Getbool(result))
         return false;
@@ -293,23 +307,25 @@
 
    std::any EvalVisitor::visitComparison(Python3Parser::ComparisonContext *ctx)  {
     std::any result=visitArith_expr(ctx->arith_expr(0));
-    if(!ctx->comp_op(0))return result;
+    auto arilist=ctx->arith_expr();
+    auto oplist=ctx->comp_op();
+    if(!oplist.size())return result;
     result=Getvalue(result);
     bool st=true;
-    for(int i=0;ctx->comp_op(i);i++){
-      std::any res=visitArith_expr(ctx->arith_expr(i+1));
+    for(int i=0;i!=oplist.size();i++){
+      std::any res=visitArith_expr(arilist[i+1]);
       res=Getvalue(res);
-      if(ctx->comp_op(i)->EQUALS())
+      if(oplist[i]->EQUALS())
         st&=(result==res);
-      if(ctx->comp_op(i)->LESS_THAN())
+      if(oplist[i]->LESS_THAN())
         st&=(result<res);
-      if(ctx->comp_op(i)->GREATER_THAN())
+      if(oplist[i]->GREATER_THAN())
         st&=(result>res);
-      if(ctx->comp_op(i)->LT_EQ())
+      if(oplist[i]->LT_EQ())
         st&=(result<=res);
-      if(ctx->comp_op(i)->GT_EQ())
+      if(oplist[i]->GT_EQ())
         st&=(result>=res);
-      if(ctx->comp_op(i)->NOT_EQ_2()){
+      if(oplist[i]->NOT_EQ_2()){
         // print(result);
         // print(res);
         st&=(result!=res);
@@ -329,15 +345,17 @@
 
    std::any EvalVisitor::visitArith_expr(Python3Parser::Arith_exprContext *ctx)  {
     std::any result=visitTerm(ctx->term(0));
-    if(!ctx->addorsub_op(0))return result;
+    auto termlist=ctx->term();
+    auto oplist=ctx->addorsub_op();
+    if(!oplist.size())return result;
     result=Getvalue(result);
     // print(result);
-    for(int i=0;ctx->addorsub_op(i);i++){
-      std::any res=Getvalue(visitTerm(ctx->term(i+1)));
+    for(int i=0;i!=oplist.size();i++){
+      std::any res=Getvalue(visitTerm(termlist[i+1]));
       // print(res);
-      if(ctx->addorsub_op(i)->ADD())
+      if(oplist[i]->ADD())
         result+=res;
-      if(ctx->addorsub_op(i)->MINUS())
+      if(oplist[i]->MINUS())
         result-=res;
     }
     return result;
@@ -349,17 +367,19 @@
 
    std::any EvalVisitor::visitTerm(Python3Parser::TermContext *ctx)  {
     std::any result=visitFactor(ctx->factor(0));
-    if(!ctx->muldivmod_op(0))return result;
+    auto factorlist=ctx->factor();
+    auto oplist=ctx->muldivmod_op();
+    if(!oplist.size())return result;
     result=Getvalue(result);
-    for(int i=0;ctx->muldivmod_op(i);i++){
-      std::any res=Getvalue(visitFactor(ctx->factor(i+1)));
-      if(ctx->muldivmod_op(i)->STAR())
+    for(int i=0;i!=oplist.size();i++){
+      std::any res=Getvalue(visitFactor(factorlist[i+1]));
+      if(oplist[i]->STAR())
         result*=res;
-      if(ctx->muldivmod_op(i)->DIV())
+      if(oplist[i]->DIV())
         result=Getdivdoubleright(result,res);
-      if(ctx->muldivmod_op(i)->IDIV())
+      if(oplist[i]->IDIV())
         result/=res;
-      if(ctx->muldivmod_op(i)->MOD())
+      if(oplist[i]->MOD())
         result%=res;
     }
     return result;
@@ -428,10 +448,11 @@
     }
     else if (!ctx->STRING().empty()){
       std::string tmp=""; 
-      for(auto s:ctx->STRING()){
-
-        for(int i=1;i+1<s->getText().size();i++){
-          tmp+=s->getText()[i];
+      auto S=ctx->STRING();
+      for(auto s:S){
+        auto textlist=s->getText();
+        for(int i=1;i+1<textlist.size();i++){
+          tmp+=textlist[i];
         }
       }
       return tmp;
@@ -451,9 +472,9 @@
    std::any EvalVisitor::visitTestlist(Python3Parser::TestlistContext *ctx)  {
     std::vector<std::any> list;
     std::vector<std::any>::iterator it;
-    for(int i=0;ctx->test(i);i++){
-      std::any tmp=visitTest(ctx->test(i));
-      
+    auto testlist=ctx->test();
+    for(int i=0;i!=testlist.size();i++){
+      std::any tmp=visitTest(testlist[i]);
       auto p=std::any_cast<std::vector<std::any>>(&tmp);
       if(p){
         
@@ -475,8 +496,9 @@
     // return {};
     std::vector<std::any>list;
     if(!ctx)return list;
-    for(int i=0;ctx->argument(i);i++){
-      std::any t=visitArgument(ctx->argument(i));
+    auto arglist=ctx->argument();
+    for(int i=0;i!=arglist.size();i++){
+      std::any t=visitArgument(arglist[i]);
       if(std::any_cast<std::pair<std::string,std::any>>(&t)){
         if(std::any_cast<std::pair<std::string,std::any>>(t).first=="!")
           t=std::any_cast<std::pair<std::string,std::any>>(t).second;
