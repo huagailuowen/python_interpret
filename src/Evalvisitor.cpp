@@ -35,8 +35,8 @@
       for(int i=0;i!=tfplist.size();i++){
         auto name=std::any_cast<std::string>(tfplist[i]->getText());
         std::any val={};
-        if(i<testlist.size()){
-          val=visitTest(testlist[i]);
+        if(i+testlist.size()>=tfplist.size()){
+          val=visitTest(testlist[i+testlist.size()-tfplist.size()]);
           // std::cout<<'|';print(val);std::cout<<'|';
         }
         f.varylist.push_back(std::make_pair(name, val));
