@@ -12,11 +12,12 @@
  std::any EvalVisitor::visitFile_input(Python3Parser::File_inputContext *ctx)  {
     
     auto stmtlist=ctx->stmt();
-    auto linelist=ctx->stmt();
-    
+    auto linelist=ctx->NEWLINE();
+    // std::cout<<"!!!";
     for(int i=0;(i<stmtlist.size()&&stmtlist[i])||(i<linelist.size()&&linelist[i]);i++){
       if((i<stmtlist.size()&&stmtlist[i]))
         visitStmt(stmtlist[i]);
+      // std::cout<<"!!!";
     }
     return {};
   }
@@ -29,11 +30,11 @@
     
     if(ctx->parameters()->typedargslist()){
       auto tfplist=ctx->parameters()->typedargslist()->tfpdef();
+      auto v=ctx->parameters()->typedargslist();
+      auto testlist=v->test();
       for(int i=0;i!=tfplist.size();i++){
-        auto v=ctx->parameters()->typedargslist();
         auto name=std::any_cast<std::string>(tfplist[i]->getText());
         std::any val={};
-        auto testlist=v->test();
         if(i<testlist.size()){
           val=visitTest(testlist[i]);
           // std::cout<<'|';print(val);std::cout<<'|';
@@ -289,6 +290,8 @@
     auto oplist=ctx->AND();
     if(!oplist.size())return result;
     result=Getbool(result);
+    if(!Getbool(result))
+      return false;
     for(int i=0;i!=oplist.size();i++){
       std::any res=visitNot_test(testlist[i+1]);
       result=(Getbool(result)&&Getbool(res));
