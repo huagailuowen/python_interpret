@@ -145,6 +145,9 @@ bool operator<(std::any &a, std::any &b) {
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
   bool *pboola, *pboolb;
+  if((bool)(pstringa = std::any_cast<std::string>(&a)) !=
+      (bool)(pstringb = std::any_cast<std::string>(&b)))
+    return false;
   if ((pstringa = std::any_cast<std::string>(&a)) ||
       (pstringb = std::any_cast<std::string>(&b))) {
     return Getstring(a) < Getstring(b);
@@ -174,6 +177,9 @@ bool operator==(std::any &a, std::any &b) {
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
   bool *pboola, *pboolb;
+  if((bool)(pstringa = std::any_cast<std::string>(&a)) !=
+      (bool)(pstringb = std::any_cast<std::string>(&b)))
+    return false;
   if ((pstringa = std::any_cast<std::string>(&a)) ||
       (pstringb = std::any_cast<std::string>(&b))) {
     return Getstring(a) == Getstring(b);
@@ -200,6 +206,8 @@ std::any operator+(std::any a, std::any b) {
   int2048 *pinta, *pintb;
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
+  bool *pboola, *pboolb;
+  
   if ((pstringa = std::any_cast<std::string>(&a)) ||
       (pstringb = std::any_cast<std::string>(&b))) {
     return Getstring(a) + Getstring(b);
@@ -209,20 +217,27 @@ std::any operator+(std::any a, std::any b) {
   } else if ((pinta = std::any_cast<int2048>(&a)) ||
              (pintb = std::any_cast<int2048>(&b))) {
     return Getint(a) + Getint(b);
-  } else {
+  } else if ((pboola = std::any_cast<bool>(&a)) ||
+             (pboolb = std::any_cast<bool>(&b))) {
+    return Getint(a) + Getint(b);
+  }else {
     return 0;
   }
 }
 std::any operator-(std::any a, std::any b) {
   int2048 *pinta, *pintb;
   double *pdoublea, *pdoubleb;
+  bool *pboola, *pboolb;
   if ((pdoublea = std::any_cast<double>(&a)) ||
       (pdoubleb = std::any_cast<double>(&b))) {
     return Getdouble(a) - Getdouble(b);
   } else if ((pinta = std::any_cast<int2048>(&a)) ||
              (pintb = std::any_cast<int2048>(&b))) {
     return Getint(a) - Getint(b);
-  } else {
+  } else if ((pboola = std::any_cast<bool>(&a)) ||
+             (pboolb = std::any_cast<bool>(&b))) {
+    return Getint(a) - Getint(b);
+  }else {
     return 0;
   }
 }
@@ -230,6 +245,7 @@ std::any operator*(std::any a, std::any b) {
   int2048 *pinta, *pintb;
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
+  bool *pboola, *pboolb;
   if ((pdoublea = std::any_cast<double>(&a)) ||
       (pdoubleb = std::any_cast<double>(&b))) {
     return Getdouble(a) * Getdouble(b);
@@ -257,13 +273,17 @@ std::any operator*(std::any a, std::any b) {
   } else if ((pinta = std::any_cast<int2048>(&a)) ||
              (pintb = std::any_cast<int2048>(&b))) {
     return Getint(a) * Getint(b);
-  } else {
+  } else if ((pboola = std::any_cast<bool>(&a)) ||
+             (pboolb = std::any_cast<bool>(&b))) {
+    return Getint(a) * Getint(b);
+  }else {
     return 0;
   }
 }
 std::any operator/(std::any a, std::any b) {
   int2048 *pinta, *pintb;
   double *pdoublea, *pdoubleb;
+  bool *pboola, *pboolb;
   if ((pdoublea = std::any_cast<double>(&a)) ||
       (pdoubleb = std::any_cast<double>(&b))) {
     double ta = Getdouble(a), tb = Getdouble(b);
@@ -271,7 +291,10 @@ std::any operator/(std::any a, std::any b) {
   } else if ((pinta = std::any_cast<int2048>(&a)) ||
              (pintb = std::any_cast<int2048>(&b))) {
     return Getint(a) / Getint(b);
-  } else {
+  } else if ((pboola = std::any_cast<bool>(&a)) ||
+             (pboolb = std::any_cast<bool>(&b))) {
+    return Getint(a) / Getint(b);
+  }else {
     return 0;
   }
 }
