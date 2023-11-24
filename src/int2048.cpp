@@ -460,9 +460,9 @@ std::vector<long long> GetInv(std::vector<long long> a, int T, int TT) {
 }
 int2048 &int2048::operator/=(int2048 b) {
   // exit(-1);
-  if(b.num.size()<=3){
+  if(b.num.size()<=7){
 // []unorderedmap
-    long long B=0,C=0;
+    __int128 B=0,C=0;
     for(int i=(int)b.num.size()-1;i>=0;i--){
       B=B*Digital+b.num[i];
     }
