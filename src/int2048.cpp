@@ -1,21 +1,19 @@
 #include "int2048.h"
 namespace sjtu {
-int getint(const int2048 &t)
-{
-  int n=0;
-  for(int i=t.num.size()-1;i>=0;i--){
-    n=n*Digital+t.num[i];
+int getint(const int2048 &t) {
+  int n = 0;
+  for (int i = t.num.size() - 1; i >= 0; i--) {
+    n = n * Digital + t.num[i];
   }
-  n*=t.f;
+  n *= t.f;
   return n;
 }
-long long getlong(const int2048 &t)
-{
-  long long n=0;
-  for(int i=t.num.size()-1;i>=0;i--){
-    n=n*Digital+t.num[i];
+long long getlong(const int2048 &t) {
+  long long n = 0;
+  for (int i = t.num.size() - 1; i >= 0; i--) {
+    n = n * Digital + t.num[i];
   }
-  n*=t.f;
+  n *= t.f;
   return n;
 }
 void _add(std::vector<int> &a, std::vector<int> &b) {
@@ -348,8 +346,8 @@ int2048 &int2048::operator*=(int2048 b) {
     return *this;
   }
   // if(b.)
-  if(b.num.size()+num.size()<=4){
-    (*this)=int2048(getlong(*this)*getlong(b));
+  if (b.num.size() + num.size() <= 4) {
+    (*this) = int2048(getlong(*this) * getlong(b));
     return *this;
   }
   f *= b.f;
@@ -460,29 +458,28 @@ std::vector<long long> GetInv(std::vector<long long> a, int T, int TT) {
 }
 int2048 &int2048::operator/=(int2048 b) {
   // exit(-1);
-  if(b.num.size()<=7){
-// []unorderedmap
-    __int128 B=0,C=0;
-    for(int i=(int)b.num.size()-1;i>=0;i--){
-      B=B*Digital+b.num[i];
+  if (b.num.size() <= 7) {
+    // []unorderedmap
+    __int128 B = 0, C = 0;
+    for (int i = (int)b.num.size() - 1; i >= 0; i--) {
+      B = B * Digital + b.num[i];
     }
-    for(int i=(int)num.size()-1;i>=0;i--){
-      C=C*Digital+num[i];
-      num[i]=C/B;
-      C%=B;
+    for (int i = (int)num.size() - 1; i >= 0; i--) {
+      C = C * Digital + num[i];
+      num[i] = C / B;
+      C %= B;
     }
-    f*=b.f;
-    if(f==-1&&C!=0){
-      num[0]+=1;
-      int d=0;
-      while(num[d]>=Digital){
-        num[d]-=Digital;
-        num[d+1]+=1;
+    f *= b.f;
+    if (f == -1 && C != 0) {
+      num[0] += 1;
+      int d = 0;
+      while (num[d] >= Digital) {
+        num[d] -= Digital;
+        num[d + 1] += 1;
         d++;
       }
-      
     }
-    while (num.size() > 1 && num[num.size() - 1] == 0){
+    while (num.size() > 1 && num[num.size() - 1] == 0) {
       num.pop_back();
     }
     if (num[num.size() - 1] == 0)
@@ -593,6 +590,5 @@ int2048 operator%(int2048 a, const int2048 b) {
 }; // namespace sjtu
    // namespace sjtu
 
-sjtu::int2048 a,b;
+sjtu::int2048 a, b;
 std::string s;
-

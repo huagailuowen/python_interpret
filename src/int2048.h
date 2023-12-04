@@ -1,6 +1,5 @@
 #pragma once
 
-
 // Integer 1:
 // 实现一个有符号的大整数类，只需支持简单的加减
 // Integer 2:
@@ -41,8 +40,7 @@ public:
   void read(const std::string &);
   // 输出储存的大整数，无需换行
   void print() const;
-  
-  
+
   // 加上一个大整数
   int2048 &add(int2048);
   // 返回两个大整数之和
@@ -92,6 +90,3 @@ public:
 int getint(const int2048 &);
 long long getlong(const int2048 &);
 } // namespace sjtu
-
-
-

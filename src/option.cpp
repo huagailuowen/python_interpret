@@ -9,7 +9,7 @@ std::any Getdivdoubleright(std::any a, std::any b) {
   return Getdouble(a) / Getdouble(b);
 }
 bool Getbool(std::any object) {
-  object=Getvalue(object);
+  object = Getvalue(object);
   bool *pbool;
   int2048 *pint;
   std::string *pstring;
@@ -26,21 +26,20 @@ bool Getbool(std::any object) {
     return false;
   }
 }
-std::any addminussignal(std::any a)
-{
-  a=Getvalue(a);
-  int2048 *pint=std::any_cast<int2048>(&a);
-  double *pdouble=std::any_cast<double>(&a);
-  if(pint){
+std::any addminussignal(std::any a) {
+  a = Getvalue(a);
+  int2048 *pint = std::any_cast<int2048>(&a);
+  double *pdouble = std::any_cast<double>(&a);
+  if (pint) {
     return -(*pint);
   }
-  if(pdouble){
+  if (pdouble) {
     return -(*pdouble);
   }
   return a;
 }
 int2048 Getint(std::any object) {
-  object=Getvalue(object);
+  object = Getvalue(object);
   bool *pbool;
   int2048 *pint;
   std::string *pstring;
@@ -50,7 +49,7 @@ int2048 Getint(std::any object) {
       return int2048(0);
     else
       return int2048(1);
-  } else if ((pint = std::any_cast<int2048>(&object)) ) {
+  } else if ((pint = std::any_cast<int2048>(&object))) {
     return *pint;
   } else if ((pstring = std::any_cast<std::string>(&object))) {
     return int2048(*pstring);
@@ -61,7 +60,7 @@ int2048 Getint(std::any object) {
   }
 }
 double Getdouble(std::any object) {
-  object=Getvalue(object);
+  object = Getvalue(object);
   bool *pbool;
   int2048 *pint;
   std::string *pstring;
@@ -82,7 +81,7 @@ double Getdouble(std::any object) {
   }
 }
 std::string Getstring(std::any object) {
-  object=Getvalue(object);
+  object = Getvalue(object);
   bool *pbool;
   int2048 *pint;
   std::string *pstring;
@@ -94,7 +93,7 @@ std::string Getstring(std::any object) {
       return "True";
   } else if ((pint = std::any_cast<int2048>(&object)) != nullptr) {
     // std::cout<<"|||";
-    std::string out="";
+    std::string out = "";
     if ((*pint).f == 0) {
       out += '0';
     } else {
@@ -130,12 +129,11 @@ std::string Getstring(std::any object) {
   } else if ((pstring = std::any_cast<std::string>(&object)) != nullptr) {
     return *pstring;
   } else if ((pdouble = std::any_cast<double>(&object)) != nullptr) {
-    
+
     return std::to_string(*pdouble);
-  } else if(!object.has_value()){
+  } else if (!object.has_value()) {
     return "None";
-  }
-  else {
+  } else {
     return "";
   }
 }
@@ -145,7 +143,7 @@ bool operator<(std::any &a, std::any &b) {
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
   bool *pboola, *pboolb;
-  if((bool)(pstringa = std::any_cast<std::string>(&a)) !=
+  if ((bool)(pstringa = std::any_cast<std::string>(&a)) !=
       (bool)(pstringb = std::any_cast<std::string>(&b)))
     return false;
   if ((pstringa = std::any_cast<std::string>(&a)) ||
@@ -177,7 +175,7 @@ bool operator==(std::any &a, std::any &b) {
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
   bool *pboola, *pboolb;
-  if((bool)(pstringa = std::any_cast<std::string>(&a)) !=
+  if ((bool)(pstringa = std::any_cast<std::string>(&a)) !=
       (bool)(pstringb = std::any_cast<std::string>(&b)))
     return false;
   if ((pstringa = std::any_cast<std::string>(&a)) ||
@@ -188,7 +186,7 @@ bool operator==(std::any &a, std::any &b) {
     return Getdouble(a) == Getdouble(b);
   } else if ((pinta = std::any_cast<int2048>(&a)) ||
              (pintb = std::any_cast<int2048>(&b))) {
-            // std::cout<<Getint(a) <<' '<< Getint(b)<<"\n";  
+    // std::cout<<Getint(a) <<' '<< Getint(b)<<"\n";
     return Getint(a) == Getint(b);
   }
   if ((pboola = std::any_cast<bool>(&a)) ||
@@ -198,16 +196,16 @@ bool operator==(std::any &a, std::any &b) {
     return false;
   }
 }
-bool operator>=(std::any &a, std::any  &b) { return !(a < b); }
-bool operator<=(std::any &a, std::any  &b) { return !(a > b); }
-bool operator!=(std::any &a, std::any  &b) { return !(a == b); }
+bool operator>=(std::any &a, std::any &b) { return !(a < b); }
+bool operator<=(std::any &a, std::any &b) { return !(a > b); }
+bool operator!=(std::any &a, std::any &b) { return !(a == b); }
 
 std::any operator+(std::any a, std::any b) {
   int2048 *pinta, *pintb;
   std::string *pstringa, *pstringb;
   double *pdoublea, *pdoubleb;
   bool *pboola, *pboolb;
-  
+
   if ((pstringa = std::any_cast<std::string>(&a)) ||
       (pstringb = std::any_cast<std::string>(&b))) {
     return Getstring(a) + Getstring(b);
@@ -220,7 +218,7 @@ std::any operator+(std::any a, std::any b) {
   } else if ((pboola = std::any_cast<bool>(&a)) ||
              (pboolb = std::any_cast<bool>(&b))) {
     return Getint(a) + Getint(b);
-  }else {
+  } else {
     return 0;
   }
 }
@@ -237,7 +235,7 @@ std::any operator-(std::any a, std::any b) {
   } else if ((pboola = std::any_cast<bool>(&a)) ||
              (pboolb = std::any_cast<bool>(&b))) {
     return Getint(a) - Getint(b);
-  }else {
+  } else {
     return 0;
   }
 }
@@ -276,7 +274,7 @@ std::any operator*(std::any a, std::any b) {
   } else if ((pboola = std::any_cast<bool>(&a)) ||
              (pboolb = std::any_cast<bool>(&b))) {
     return Getint(a) * Getint(b);
-  }else {
+  } else {
     return 0;
   }
 }
@@ -294,20 +292,20 @@ std::any operator/(std::any a, std::any b) {
   } else if ((pboola = std::any_cast<bool>(&a)) ||
              (pboolb = std::any_cast<bool>(&b))) {
     return Getint(a) / Getint(b);
-  }else {
+  } else {
     return 0;
   }
 }
 
 std::any operator%(std::any a, std::any b) { return Getint(a) % Getint(b); }
-std::any &operator+=(std::any &a, std::any  &b) { return a = a + b; }
-std::any &operator-=(std::any &a, std::any  &b) { return a = a - b; }
-std::any &operator*=(std::any &a, std::any  &b) { return a = a * b; }
-std::any &operator/=(std::any &a, std::any  &b) { return a = a / b; }
-std::any &Getdivdouble(std::any &a, std::any  &b) {
+std::any &operator+=(std::any &a, std::any &b) { return a = a + b; }
+std::any &operator-=(std::any &a, std::any &b) { return a = a - b; }
+std::any &operator*=(std::any &a, std::any &b) { return a = a * b; }
+std::any &operator/=(std::any &a, std::any &b) { return a = a / b; }
+std::any &Getdivdouble(std::any &a, std::any &b) {
   return a = Getdivdoubleright(a, b);
 }
-std::any &operator%=(std::any &a, std::any  &b) { return a = a % b; }
+std::any &operator%=(std::any &a, std::any &b) { return a = a % b; }
 
 void print(std::any const &a) { std::cout << Getstring(a); }
 
